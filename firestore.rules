@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /habits/{habitId} {
+      allow read, update, delete: if request.auth != null
+        && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.userId;
+
+      match /checkIns/{dateKey} {
+        allow read, write: if request.auth != null
+          && request.auth.uid == get(/databases/$(database)/documents/habits/$(habitId)).data.userId;
+      }
+    }
+  }
+}
