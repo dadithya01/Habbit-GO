@@ -1,4 +1,4 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import {
   initializeAuth,
   getReactNativePersistence,
@@ -8,8 +8,10 @@ import {
   signOut,
   sendPasswordResetEmail,
   updateProfile,
+  type Auth,
+  type User,
 } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, type Firestore } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const firebaseConfig = {
@@ -22,9 +24,9 @@ const firebaseConfig = {
 };
 
 // Avoid re-initializing on fast refresh
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-let auth;
+let auth: Auth;
 try {
   auth = initializeAuth(app, {
     persistence: getReactNativePersistence(AsyncStorage),
@@ -35,10 +37,10 @@ try {
   auth = getAuth(app);
 }
 
-const db = getFirestore(app);
+const db: Firestore = getFirestore(app);
 
 /** Creates an account and sets the display name in one step. */
-async function registerWithEmail(name, email, password) {
+async function registerWithEmail(name: string, email: string, password: string): Promise<User> {
   const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
   if (name?.trim()) {
     await updateProfile(cred.user, { displayName: name.trim() });
@@ -46,17 +48,16 @@ async function registerWithEmail(name, email, password) {
   return cred.user;
 }
 
-function loginWithEmail(email, password) {
+function loginWithEmail(email: string, password: string): Promise<User> {
   return signInWithEmailAndPassword(auth, email.trim(), password).then((cred) => cred.user);
 }
 
-function logout() {
+function logout(): Promise<void> {
   return signOut(auth);
 }
 
-function resetPassword(email) {
+function resetPassword(email: string): Promise<void> {
   return sendPasswordResetEmail(auth, email.trim());
 }
 
 export { app, auth, db, registerWithEmail, loginWithEmail, logout, resetPassword };
-

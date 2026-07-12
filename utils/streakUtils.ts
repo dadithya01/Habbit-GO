@@ -1,12 +1,13 @@
 import { addDays, toKey, todayKey } from "./dateUtils";
+import type { StreakCounts } from "../types/habit";
 
 /**
- * completedKeys: Set<string> or string[] of "YYYY-MM-DD" dates the habit was checked off.
+ * completedKeys: an iterable of "YYYY-MM-DD" dates the habit was checked off.
  * Returns { current, best } streak counts, counted in days.
  * A streak counts backwards from today (or yesterday, if today isn't done yet
  * so a still-open day doesn't break the streak).
  */
-export function computeStreaks(completedKeys) {
+export function computeStreaks(completedKeys: Iterable<string>): StreakCounts {
   const done = new Set(completedKeys);
   if (done.size === 0) return { current: 0, best: 0 };
 
@@ -29,12 +30,12 @@ export function computeStreaks(completedKeys) {
   const sortedKeys = Array.from(done).sort();
   let best = 0;
   let run = 0;
-  let prevDate = null;
+  let prevDate: Date | null = null;
 
   for (const key of sortedKeys) {
     const date = new Date(key);
     if (prevDate) {
-      const dayDiff = Math.round((date - prevDate) / (1000 * 60 * 60 * 24));
+      const dayDiff = Math.round((date.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
       run = dayDiff === 1 ? run + 1 : 1;
     } else {
       run = 1;
@@ -46,6 +47,6 @@ export function computeStreaks(completedKeys) {
   return { current, best: Math.max(best, current) };
 }
 
-export function isCompletedToday(completedKeys) {
+export function isCompletedToday(completedKeys: Iterable<string>): boolean {
   return new Set(completedKeys).has(todayKey());
 }
